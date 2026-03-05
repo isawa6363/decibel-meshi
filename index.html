@@ -78,6 +78,19 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 }
 .toast.show{bottom:0;}
 .toast-hint{font-size:10px;color:#888;margin-top:3px;text-align:center;}
+
+@media(max-width:640px){
+  .sidebar{display:none;}
+  .main{padding:10px;}
+  .card{flex-direction:column;gap:10px;}
+  .card-right{display:flex;align-items:center;gap:12px;width:100%;text-align:left;}
+  .db-circle{width:52px;height:52px;margin:0;}
+  .db-num{font-size:15px;}
+  .db-label{font-size:10px;}
+  .filter-inner{gap:0;}
+  .filter-tab{padding:10px 12px;font-size:12px;}
+  .search-input-wrap input{font-size:14px;}
+}
 </style>
 </head>
 <body>
