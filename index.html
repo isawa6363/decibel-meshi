@@ -321,6 +321,9 @@ async function doSearch(){
       done++;
       st.innerHTML='<div class="status-icon">⏳</div>レビュー解析中... '+done+'/'+places.length;
     }
+    // 重複排除
+    var seen={};
+    allResults=allResults.filter(function(r){if(seen[r.id])return false;seen[r.id]=true;return true;});
     renderResults();
   }catch(e){
     st.innerHTML='<div class="status-icon">⚠️</div>エラー: '+e.message+'<br><small>ターミナルでnode ~/dbmeshi/server.jsを実行してください</small>';
