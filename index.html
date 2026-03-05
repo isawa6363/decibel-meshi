@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>デシベルめし - 騒音で選ぶグルメ検索</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--red:#c9171e;--bg:#f5f5f0;--white:#fff;--border:#e0ddd8;--text:#1a1a1a;--muted:#888;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+.site-header{background:var(--red);}
+.header-top{max-width:980px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;}
+.logo-title{font-family:'Share Tech Mono',monospace;font-size:26px;color:#fff;font-weight:bold;letter-spacing:1px;line-height:1.2;}
+.logo-sub{font-size:11px;color:rgba(255,255,255,0.65);letter-spacing:1px;margin-top:2px;}
+.waveform{display:flex;align-items:center;gap:1px;height:36px;overflow:hidden;margin-left:14px;}
+.wv-bar{width:3px;background:rgba(255,255,255,0.55);border-radius:1px;flex-shrink:0;transition:height 0.05s ease;transform-origin:center;}
+.wv-bar.idle{animation:wvanim 1.2s ease-in-out infinite;}
+@keyframes wvanim{0%,100%{transform:scaleY(0.12)}50%{transform:scaleY(1)}}
+.search-bar{background:#a81219;padding:10px 0;border-top:1px solid rgba(255,255,255,0.15);}
+.search-bar-inner{max-width:980px;margin:0 auto;padding:0 16px;display:flex;gap:8px;align-items:center;}
+.search-input-wrap{flex:1;display:flex;background:#fff;border-radius:4px;overflow:hidden;border:2px solid #fff;}
+.search-input-wrap:focus-within{border-color:#ffcc00;}
+.search-area-label{padding:0 10px;font-size:11px;color:var(--muted);display:flex;align-items:center;border-right:1px solid var(--border);background:#fafafa;white-space:nowrap;}
+.search-input-wrap input{flex:1;padding:10px 12px;border:none;outline:none;font-size:15px;font-family:'Noto Sans JP',sans-serif;}
+.search-btn{padding:10px 24px;background:#ff8c00;color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.search-btn:hover{background:#e07800;}
+.filter-section{background:var(--white);border-bottom:2px solid var(--red);}
+.filter-inner{max-width:980px;margin:0 auto;padding:0 16px;display:flex;align-items:center;overflow-x:auto;}
+.filter-tab{padding:12px 18px;font-size:13px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Noto Sans JP',sans-serif;}
+.filter-tab:hover{color:var(--red);}
+.filter-tab.active{color:var(--red);border-bottom-color:var(--red);font-weight:700;}
+.sort-wrap{margin-left:auto;padding:8px 0;}
+.sort-select{padding:4px 8px;border:1px solid var(--border);border-radius:3px;font-size:12px;color:var(--muted);background:#fafafa;outline:none;font-family:'Noto Sans JP',sans-serif;}
+.main{max-width:980px;margin:0 auto;padding:16px;display:flex;gap:16px;}
+.results-wrap{flex:1;min-width:0;}
+.result-count{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.result-count span{color:var(--red);font-weight:bold;}
+.sidebar{width:220px;flex-shrink:0;}
+.sidebar-box{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:12px;}
+.sidebar-title{font-size:13px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.db-scale{display:flex;flex-direction:column;gap:8px;}
+.db-scale-item{display:flex;align-items:center;gap:8px;font-size:11px;}
+.db-scale-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.db-scale-sub{color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:10px;}
+.status{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px;}
+.status-icon{font-size:40px;margin-bottom:12px;}
+.card{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:10px;display:flex;gap:16px;}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+.card-left{flex:1;min-width:0;}
+.card-right{flex-shrink:0;text-align:center;width:80px;}
+.card-name{font-size:16px;font-weight:700;margin-bottom:4px;}
+.card-name a{color:var(--red);text-decoration:none;}
+.card-name a:hover{text-decoration:underline;}
+.card-meta{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.db-circle{width:72px;height:72px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid;margin:0 auto 6px;}
+.db-num{font-family:'Share Tech Mono',monospace;font-size:20px;font-weight:bold;line-height:1;}
+.db-unit-sm{font-family:'Share Tech Mono',monospace;font-size:9px;opacity:0.7;}
+.db-label{font-size:10px;color:var(--muted);text-align:center;line-height:1.4;}
+.meter-section{margin:10px 0 8px;}
+.meter-label-row{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:3px;font-family:'Share Tech Mono',monospace;}
+.meter-track{height:5px;background:#ece8e0;display:flex;gap:1px;}
+.meter-seg-el{flex:1;}
+.keywords{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.kw{padding:2px 7px;font-size:11px;border-radius:2px;}
+.kw-quiet{background:#e0f5f2;color:#2a7d72;border:1px solid #b0ddd8;}
+.kw-noisy{background:#fde8e8;color:#c0392b;border:1px solid #f0b8b8;}
+.no-kw{font-size:11px;color:#bbb;}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-top">
+    <div>
+      <div class="logo-title">デシベルめし</div>
+      <div class="logo-sub">騒音で選ぶグルメ検索</div>
+    </div>
+    <div class="waveform" id="waveform"></div>
+  </div>
+  <div class="search-bar">
+    <div class="search-bar-inner">
+      <div class="search-input-wrap">
+        <span class="search-area-label">エリア</span>
+        <input type="text" id="areaInput" placeholder="渋谷、新宿、銀座…" />
+      </div>
+      <button class="search-btn" id="searchBtn">検索する</button>
+    </div>
+  </div>
+</header>
+<div class="filter-section">
+  <div class="filter-inner">
+    <button class="filter-tab active" onclick="setFilter('all',this)">すべて</button>
+    <button class="filter-tab" onclick="setFilter('quiet',this)">🤫 静か（〜45dB）</button>
+    <button class="filter-tab" onclick="setFilter('normal',this)">😊 普通（〜65dB）</button>
+    <button class="filter-tab" onclick="setFilter('noisy',this)">🎉 賑やか（75dB〜）</button>
+    <div class="sort-wrap">
+      <select class="sort-select" id="sortSelect" onchange="renderResults()">
+        <option value="quiet">静かな順</option>
+        <option value="noisy">賑やかな順</option>
+        <option value="rating">評価が高い順</option>
+        <option value="reviews">レビュー数が多い順</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div class="main">
+  <div class="results-wrap">
+    <div class="result-count" id="resultCount"></div>
+    <div id="status" class="status"><div class="status-icon">🍽️</div>エリアを入力して検索してください</div>
+    <div id="cards"></div>
+  </div>
+  <div class="sidebar">
+    <div class="sidebar-box">
+      <div class="sidebar-title">📊 dBスケール目安</div>
+      <div class="db-scale">
+        <div class="db-scale-item"><div class="db-scale-dot" style="background:#2a9d8f"></div><div><div>〜35dB</div><div class="db-scale-sub">図書館レベル</div></div></div>
+        <div class="db-scale-item"><div class="db-scale-dot" style="background:#52b788"></div><div><div>〜50dB</div><div class="db-scale-sub">深夜の住宅街</div></div></div>
+        <div class="db-scale-item"><div class="db-scale-dot" style="background:#f4a261"></div><div><div>〜65dB</div><div class="db-scale-sub">普通の会話</div></div></div>
+        <div class="db-scale-item"><div class="db-scale-dot" style="background:#e76f51"></div><div><div>〜78dB</div><div class="db-scale-sub">賑やかな居酒屋</div></div></div>
+        <div class="db-scale-item"><div class="db-scale-dot" style="background:#e63946"></div><div><div>90dB〜</div><div class="db-scale-sub">ライブハウス級</div></div></div>
+      </div>
+    </div>
+    <div class="sidebar-box">
+      <div class="sidebar-title">ℹ️ このサービスについて</div>
+      <p style="font-size:11px;color:var(--muted);line-height:1.7">Googleのレビューテキストを解析し騒音関連ワードからdBを推定しています。実測値ではありません。</p>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var wf=document.getElementById('waveform');
+  var bars=[];
+  var BAR_COUNT=80;
+  for(var i=0;i<BAR_COUNT;i++){
+    var b=document.createElement('div');
+    b.className='wv-bar idle';
+    b.style.height=(Math.random()*28+4)+'px';
+    b.style.animationDelay=(Math.random()*1.2)+'s';
+    b.style.animationDuration=(0.7+Math.random()*0.9)+'s';
+    b.style.opacity=(0.4+Math.random()*0.4).toFixed(2);
+    wf.appendChild(b);
+    bars.push(b);
+  }
+
+  var audioCtx=null, analyser=null, dataArray=null, micActive=false;
+
+  function startMic(){
+    if(micActive) return;
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      var source=audioCtx.createMediaStreamSource(stream);
+      analyser=audioCtx.createAnalyser();
+      analyser.fftSize=256;
+      analyser.smoothingTimeConstant=0.75;
+      source.connect(analyser);
+      dataArray=new Uint8Array(analyser.frequencyBinCount);
+      micActive=true;
+      bars.forEach(function(b){ b.classList.remove('idle'); b.style.animation='none'; });
+      animate();
+    }).catch(function(){
+      // マイク拒否された場合はアイドルアニメのまま
+    });
+  }
+
+  function animate(){
+    if(!micActive) return;
+    requestAnimationFrame(animate);
+    analyser.getByteFrequencyData(dataArray);
+    var binSize=Math.floor(dataArray.length/BAR_COUNT);
+    for(var i=0;i<BAR_COUNT;i++){
+      var val=0;
+      for(var j=0;j<binSize;j++) val+=dataArray[i*binSize+j];
+      val=val/binSize;
+      var h=4+val/255*32;
+      bars[i].style.height=h+'px';
+    }
+  }
+
+  // ページロード後にマイクを要求
+  window.addEventListener('load', function(){
+    setTimeout(startMic, 500);
+  });
+})();
+
+document.getElementById('areaInput').addEventListener('keydown',function(e){if(e.key==='Enter')doSearch();});
+document.getElementById('searchBtn').addEventListener('click',doSearch);
+
+var allResults=[],currentFilter='all';
+
+var QUIET_WORDS=[
+  'quiet','calm','relaxing','relaxed','peaceful','cozy','intimate','tranquil','serene',
+  'laid-back','laid back','low-key','hidden gem','private','subdued','mellow','hushed',
+  'not too loud','not noisy','great for conversation','easy to talk','could hear each other',
+  '静か','静かな','落ち着いた','落ち着く','ゆったり','ゆっくり','穏やか','個室','隠れ家',
+  '会話しやすい','話しやすい','聞こえやすい','静粛','閑静','ひっそり','くつろげる',
+  '静かめ','比較的静か','わりと静か','そこまでうるさくない','騒がしくない'
+];
+var NOISY_WORDS=[
+  'noisy','loud','very loud','too loud','so loud','quite loud','really loud','extremely loud',
+  'a bit noisy','bit noisy','gets noisy','can get noisy','get loud','gets loud',
+  'boisterous','rowdy','hard to hear','difficult to hear','hard to talk','difficult to talk',
+  'could not hear','hard to have a conversation','deafening',
+  'うるさい','うるさかった','騒がしい','騒々しい','わいわい','がやがや',
+  'BGMがうるさい','音楽がうるさい','話しにくい','聞こえない','聞こえにくい',
+  'うるさすぎ','爆音','喧騒','騒音','ちょっとうるさい','かなりうるさい'
+];
+
+function calcNoiseScore(reviews){
+  if(!reviews||!reviews.length)return{score:null,foundQuiet:[],foundNoisy:[],hasData:false};
+  var qc=0,nc=0,fq=[],fn=[];
+  for(var i=0;i<reviews.length;i++){
+    var t=(reviews[i]||'').toLowerCase();
+    for(var j=0;j<QUIET_WORDS.length;j++){if(t.indexOf(QUIET_WORDS[j].toLowerCase())>=0&&fq.indexOf(QUIET_WORDS[j])<0){qc++;fq.push(QUIET_WORDS[j]);}}
+    for(var k=0;k<NOISY_WORDS.length;k++){if(t.indexOf(NOISY_WORDS[k].toLowerCase())>=0&&fn.indexOf(NOISY_WORDS[k])<0){nc++;fn.push(NOISY_WORDS[k]);}}
+  }
+  var total=qc+nc;
+  if(!total)return{score:null,foundQuiet:fq,foundNoisy:fn,hasData:reviews.length>0};
+  var ratio=nc/total,raw=1+ratio*4,conf=Math.min(1,total/4);
+  return{score:Math.round((raw*conf+3*(1-conf))*10)/10,foundQuiet:fq,foundNoisy:fn,hasData:true};
+}
+
+function scoreToDb(s){var d=[30,45,60,75,90],lo=Math.min(Math.floor(s-1),3),t=(s-1)-lo;return Math.round(d[lo]+(d[Math.min(lo+1,4)]-d[lo])*t);}
+function dbDesc(d){if(d<=35)return'図書館レベル';if(d<=50)return'深夜の住宅街';if(d<=65)return'普通の会話';if(d<=78)return'賑やかな居酒屋';return'ライブハウス級';}
+function dbColor(d){if(d<=40)return'#2a9d8f';if(d<=55)return'#52b788';if(d<=65)return'#f4a261';if(d<=78)return'#e76f51';return'#e63946';}
+function starsHtml(r){var s='';for(var i=1;i<=5;i++)s+='<span style="color:'+(i<=Math.round(r)?'#ffb800':'#ddd')+'">★</span>';return s;}
+
+function setFilter(f,btn){
+  currentFilter=f;
+  var tabs=document.querySelectorAll('.filter-tab');
+  for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');
+  btn.classList.add('active');
+  renderResults();
+}
+function filtered(){
+  return allResults.filter(function(r){
+    var s=r.noiseData?r.noiseData.score:null;
+    if(currentFilter==='quiet')return s!==null&&s<=2.5;
+    if(currentFilter==='normal')return s!==null&&s>2.5&&s<=3.5;
+    if(currentFilter==='noisy')return s!==null&&s>3.5;
+    return true;
+  });
+}
+function sorted(arr){
+  var k=document.getElementById('sortSelect').value;
+  return arr.slice().sort(function(a,b){
+    var as=a.noiseData&&a.noiseData.score!=null?a.noiseData.score:3;
+    var bs=b.noiseData&&b.noiseData.score!=null?b.noiseData.score:3;
+    if(k==='quiet')return as-bs;
+    if(k==='noisy')return bs-as;
+    if(k==='rating')return(b.rating||0)-(a.rating||0);
+    if(k==='reviews')return(b.userRatingCount||0)-(a.userRatingCount||0);
+    return 0;
+  });
+}
+
+function renderResults(){
+  var data=sorted(filtered());
+  var cards=document.getElementById('cards');
+  var rc=document.getElementById('resultCount');
+  var st=document.getElementById('status');
+  st.style.display='none';
+  if(!data.length){cards.innerHTML='';st.style.display='block';st.innerHTML='<div class="status-icon">🔍</div>該当する店舗がありません';rc.innerHTML='';return;}
+  rc.innerHTML='<span>'+data.length+'件</span>の店舗が見つかりました';
+  var html='';
+  for(var i=0;i<data.length;i++){
+    var r=data[i];
+    var nd=r.noiseData,score=nd?nd.score:null;
+    var db=score!==null?scoreToDb(score):null;
+    var color=db?dbColor(db):'#ccc';
+    var filled=score?Math.round((score/5)*20):0;
+    var mapUrl=r.id?'https://www.google.com/maps/place/?q=place_id:'+r.id:'#';
+    var name=(r.displayName&&r.displayName.text)?r.displayName.text:(r.name||'名称不明');
+    var addr=r.shortFormattedAddress||'';
+    var rating=r.rating||0;
+    var rcount=r.userRatingCount||0;
+    var qkws=nd?nd.foundQuiet.slice(0,4):[];
+    var nkws=nd?nd.foundNoisy.slice(0,4):[];
+    var hasReviews=nd?nd.hasData:false;
+    var segs='';
+    for(var j=0;j<20;j++){var pct=((j+1)/20)*100;var c='#ece8e0';if(j<filled){c=pct<=40?'#2a9d8f':pct<=60?'#f4a261':'#e63946';}segs+='<div class="meter-seg-el" style="background:'+c+'"></div>';}
+    var dbBlock=db!==null?'<div class="db-circle" style="border-color:'+color+';background:'+color+'18"><div class="db-num" style="color:'+color+'">'+db+'</div><div class="db-unit-sm" style="color:'+color+'">dB</div></div><div class="db-label">'+dbDesc(db)+'</div>':'<div class="db-circle" style="border-color:#ddd;background:#fafafa"><div class="db-num" style="color:#ccc">--</div><div class="db-unit-sm" style="color:#ccc">dB</div></div><div class="db-label" style="color:#ccc">'+(hasReviews?'キーワードなし':'レビューなし')+'</div>';
+    var kwHtml=(qkws.length||nkws.length)?'<div class="keywords">'+qkws.map(function(w){return'<span class="kw kw-quiet">'+w+'</span>';}).join('')+nkws.map(function(w){return'<span class="kw kw-noisy">'+w+'</span>';}).join('')+'</div>':'<div class="no-kw">'+(hasReviews?'騒音関連キーワードなし':'レビューなし')+'</div>';
+    html+='<div class="card"><div class="card-left"><div class="card-name"><a href="'+mapUrl+'" target="_blank">'+name+'</a></div><div class="card-meta">'+(rating?'<span style="color:#ffb800">'+starsHtml(rating)+'</span><span>'+rating.toFixed(1)+' ('+rcount+'件)</span>':'')+(addr?'<span>📍 '+addr+'</span>':'')+' </div><div class="meter-section"><div class="meter-label-row"><span>LOW</span><span>HIGH</span></div><div class="meter-track">'+segs+'</div></div>'+kwHtml+'</div><div class="card-right">'+dbBlock+'</div></div>';
+  }
+  cards.innerHTML=html;
+}
+
+async function doSearch(){
+  var area=document.getElementById('areaInput').value.trim();
+  if(!area){alert('エリアを入力してください');return;}
+  var st=document.getElementById('status');
+  st.style.display='block';
+  st.innerHTML='<div class="status-icon">⏳</div>検索中...';
+  document.getElementById('cards').innerHTML='';
+  document.getElementById('resultCount').innerHTML='';
+  allResults=[];
+  try{
+    var res=await fetch('/api/search',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({textQuery:area+' レストラン 飲食店',maxResultCount:15})
+    });
+    var data=await res.json();
+    if(data.error){st.innerHTML='<div class="status-icon">⚠️</div>エラー: '+data.error.message;return;}
+    if(!data.places||!data.places.length){st.innerHTML='<div class="status-icon">🔍</div>店舗が見つかりませんでした';return;}
+    var places=data.places;
+    var done=0;
+    st.innerHTML='<div class="status-icon">⏳</div>レビュー解析中... 0/'+places.length;
+    for(var i=0;i<places.length;i++){
+      try{
+        var dr=await fetch('/api/place/'+places[i].id);
+        var d=await dr.json();
+        var texts=(d.reviews||[]).map(function(r){return r.text&&r.text.text?r.text.text:(r.text||'');});
+        d.noiseData=calcNoiseScore(texts);
+        allResults.push(d);
+      }catch(e){places[i].noiseData=calcNoiseScore([]);allResults.push(places[i]);}
+      done++;
+      st.innerHTML='<div class="status-icon">⏳</div>レビュー解析中... '+done+'/'+places.length;
+    }
+    renderResults();
+  }catch(e){
+    st.innerHTML='<div class="status-icon">⚠️</div>エラー: '+e.message+'<br><small>ターミナルでnode ~/dbmeshi/server.jsを実行してください</small>';
+  }
+}
+</script>
+</body>
+</html>
