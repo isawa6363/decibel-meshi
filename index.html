@@ -66,6 +66,18 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .kw-quiet{background:#e0f5f2;color:#2a7d72;border:1px solid #b0ddd8;}
 .kw-noisy{background:#fde8e8;color:#c0392b;border:1px solid #f0b8b8;}
 .no-kw{font-size:11px;color:#bbb;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);
+  background:#1a1a1a;color:#fff;padding:12px 24px;border-radius:8px 8px 0 0;
+  font-size:13px;font-family:'Noto Sans JP',sans-serif;
+  transition:bottom 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  white-space:nowrap;z-index:999;box-shadow:0 -2px 12px rgba(0,0,0,0.3);
+  cursor:pointer;
+}
+.toast.show{bottom:0;}
+.toast-hint{font-size:10px;color:#888;margin-top:3px;text-align:center;}
 </style>
 </head>
 <body>
@@ -329,6 +341,31 @@ async function doSearch(){
     st.innerHTML='<div class="status-icon">⚠️</div>エラー: '+e.message+'<br><small>ターミナルでnode ~/dbmeshi/server.jsを実行してください</small>';
   }
 }
+
+// 隠しコマンド
+(function(){
+  var SEQ = ['ArrowUp','x','ArrowDown','b','l','y','a'];
+  var buf = [];
+  document.addEventListener('keydown', function(e){
+    buf.push(e.key);
+    if(buf.length > SEQ.length) buf.shift();
+    if(buf.join(',') === SEQ.join(',')){
+      window.location.href = 'https://tabelog.com';
+    }
+  });
+
+  // 8秒後にトースト表示
+  var toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = '🍽️ 味のことは他所で調べてください<div class="toast-hint">タップで閉じる</div>';
+  document.body.appendChild(toast);
+  toast.addEventListener('click', function(){ toast.classList.remove('show'); });
+
+  setTimeout(function(){
+    toast.classList.add('show');
+    setTimeout(function(){ toast.classList.remove('show'); }, 5000);
+  }, 8000);
+})();
 </script>
 </body>
 </html>
