@@ -93,8 +93,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 }
 
 .logo-img{display:block;}
-body.shake{animation:logoshake 0.35s ease;}
-@keyframes logoshake{0%{transform:translate(0,0)}15%{transform:translate(-4px,3px)}30%{transform:translate(4px,-3px)}45%{transform:translate(-3px,2px)}60%{transform:translate(3px,-2px)}75%{transform:translate(-2px,1px)}90%{transform:translate(2px,-1px)}100%{transform:translate(0,0)}}
+body.shake{animation:logoshake 0.4s steps(1) infinite;}
+@keyframes logoshake{0%{transform:translate(0,0)}10%{transform:translate(-5px,-3px)}20%{transform:translate(4px,5px)}30%{transform:translate(-3px,4px)}40%{transform:translate(5px,-4px)}50%{transform:translate(-4px,2px)}60%{transform:translate(3px,-5px)}70%{transform:translate(-5px,3px)}80%{transform:translate(4px,-2px)}90%{transform:translate(-2px,5px)}100%{transform:translate(0,0)}}
 .live-db{font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(255,255,255,0.75);margin-top:3px;letter-spacing:1px;height:16px;}
 </style>
 </head>
@@ -184,10 +184,10 @@ body.shake{animation:logoshake 0.35s ease;}
   function getDb(val){ return Math.round(20*Math.log10(val/255*100+1)+20); }
 
   function triggerShake(){
-    if(shaking) return;
-    shaking=true;
     document.body.classList.add('shake');
-    setTimeout(function(){ document.body.classList.remove('shake'); shaking=false; }, 350);
+    clearTimeout(window._shakeTimer);
+    window._shakeTimer=setTimeout(function(){ document.body.classList.remove('shake'); shaking=false; }, 400);
+    shaking=true;
   }
 
   function showNoisyToast(){
