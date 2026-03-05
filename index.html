@@ -358,34 +358,38 @@ async function doSearch(){
 // 隠しコマンド
 (function(){
   var SEQ = ['ArrowUp','x','ArrowDown','b','l','y','r','a'];
-  var buf = [];
+  var LABELS = ['↑','x','↓','b','l','y','r','a'];
   var progress = 0;
 
   // トースト
   var toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = '🍽️ 味のことは他所で調べてください<div class="toast-hint">↑ x ↓ b l y r a</div>';
   document.body.appendChild(toast);
+
+  function renderToast(){
+    var hint = LABELS.slice(progress).join(' ');
+    toast.innerHTML = '🍽️ 味のことは他所で調べてください<div class="toast-hint">' + (hint || '&nbsp;') + '</div>';
+  }
+  renderToast();
 
   setTimeout(function(){ toast.classList.add('show'); }, 8000);
 
   document.addEventListener('keydown', function(e){
     if(e.key === SEQ[progress]){
       progress++;
-      // 進捗に応じてトーストの背景をオレンジに
       var pct = progress / SEQ.length;
       var r = Math.round(26 + (255-26)*pct);
       var g = Math.round(26 + (140-26)*pct);
-      var b = Math.round(26 + (0-26)*pct);
-      toast.style.background = 'rgb('+r+','+g+','+b+')';
-      toast.style.color = pct > 0.5 ? '#fff' : '#fff';
+      var b2 = Math.round(26 + (0-26)*pct);
+      toast.style.background = 'rgb('+r+','+g+','+b2+')';
+      renderToast();
       if(progress === SEQ.length){
         setTimeout(function(){ window.location.href = 'https://tabelog.com'; }, 300);
       }
     } else {
-      // ミスったらリセット
       progress = 0;
       toast.style.background = '#1a1a1a';
+      renderToast();
     }
   });
 })();
